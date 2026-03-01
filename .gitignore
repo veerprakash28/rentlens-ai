@@ -35,5 +35,7 @@ auth.json
 backend/auth.json
 backend/.env
 frontend/.env
+user_info.json
+backend/user_info.json
 .idea/
 .vscode/

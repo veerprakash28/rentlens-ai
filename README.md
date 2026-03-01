@@ -1,67 +1,93 @@
-# RentLens
+# 🚀 RentLens: AI-Powered Rental Scraper
 
-**An AI-powered Facebook Group scraper that finds, filters, and organizes rental listings (like flats and flatmates) into a clean, searchable dashboard.**
+**RentLens** is a sophisticated full-stack tool designed to cut through the noise of Facebook Group rental listings. Using **Playwright** for robust scraping and **Google Gemini AI** for intelligent parsing, it finds, filters, and organizes rental posts (flats, flatmates, PGs) into a clean, searchable, and professional dashboard.
 
-A full-stack application using Playwright, Python (FastAPI), and Gemini AI.
+---
 
-## Prerequisites
+## 🌟 Key Features
 
+- **Automated Scraping**: Efficiently scrolls through Facebook Groups to capture the latest listings.
+- **AI-Powered Parsing**: Uses Gemini AI to extract structured data (Rent, Location, Room Type, Gender Preference) from messy post text.
+- **Smart Filtering**: Filter by budget, accommodation type, gender, and more directly on your dashboard.
+- **Premium UI**: A modern, sleek interface built with Next.js and TailwindCSS for a superior user experience.
+
+---
+
+## 🛠️ Architecture
+
+- **Frontend**: Next.js 15+, TailwindCSS, TypeScript.
+- **Backend**: Python 3.9+, FastAPI, Playwright (Chromium).
+- **AI Engine**: Google Gemini API via `google-generativeai` SDK.
+
+---
+
+## 🚦 Prerequisites
+
+Before you begin, ensure you have the following installed:
 - **Python 3.9+**
 - **Node.js 18+**
-- **Google Gemini API Key** (Get one from [Google AI Studio](https://makersuite.google.com/app/apikey))
+- **Google Gemini API Key**: Obtain one from the [Google AI Studio](https://aistudio.google.com/app/apikey).
 
-## Quick Start
+---
 
-### 1. Backend (Python/FastAPI)
+## ⚡ Quick Start
 
-Open a terminal and run:
+### 1. Backend Setup
 
 ```bash
 cd backend
 
-# Create virtual environment (if not already done)
+# Create and activate virtual environment
 python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
-# Install dependencies (if not already done)
+# Install dependencies
 pip install -r requirements.txt
-# Note: Since we use httpx directly now, ensure httpx is installed:
-pip install httpx python-dotenv playwright uvicorn fastapi pydantic
 
-# Install Playwright browsers (first time only)
+# Install Playwright browser
 playwright install chromium
 
-# **IMPORANT**: Configure your API Key
-# Create a .env file in backend/ based on .env.example
-# Add: GEMINI_API_KEY=your_actual_key_here
-
-# Run the Server
-./venv/bin/uvicorn main:app --reload --port 8000
+# Configure Environment Variables
+# Copy .env.example to .env and add your GEMINI_API_KEY
+cp .env.example .env
 ```
 
-The backend will start at `http://localhost:8000`.
+**Run Backend:**
+```bash
+uvicorn main:app --reload --port 8000
+```
+Backend will be available at: `http://localhost:8000`
 
-### 2. Frontend (Next.js)
-
-Open a **new** terminal window and run:
+### 2. Frontend Setup
 
 ```bash
 cd frontend
 
-# Install dependencies (first time only)
+# Install dependencies
 npm install
 
-# Run the Development Server
+# Run Development Server
 npm run dev
 ```
+Frontend will be available at: `http://localhost:3000`
 
-The frontend will start at `http://localhost:3000`.
+---
 
-## Usage
+## 📖 How to Use
 
-1.  Open `http://localhost:3000` in your browser.
-2.  Paste a Facebook Group URL (e.g., `https://www.facebook.com/groups/flat.and.flatmates.without.brokers.bangalore/`).
-3.  Set your filters (Rent, Type, Gender, etc.).
-4.  Click **"Start Scrape"**.
-5.  Wait for the scraper to finish scrolling and the AI to parse the results.
-6.  View the filtered list significantly cleaner than Facebook's feed!
+1. **Launch**: Start both backend and frontend servers.
+2. **Navigate**: Open `http://localhost:3000` in your browser.
+3. **Target**: Paste the URL of a public Facebook Group (e.g., *Bangalore Flat and Flatmates*).
+4. **Filter**: Set your preferences for Rent, Gender, and Room Type.
+5. **Execute**: Click **"Start Scrape"** and watch the AI organize the chaos!
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Feel free to open issues or submit pull requests to improve the scraper's efficiency or the dashboard's features.
+
+---
+
+*Made with ❤️ for easier house hunting.*
+

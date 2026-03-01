@@ -1,6 +1,6 @@
 fastapi
 uvicorn
 playwright
-google-generative-ai
+google-generativeai
 python-dotenv
 pydantic

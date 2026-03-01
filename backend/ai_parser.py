@@ -48,12 +48,15 @@ def extract_with_regex(text: str) -> dict:
         "rent": rent,
         "location": location,
         "genderPreference": gender, 
-        "description": text[:300] + "...",
+        "description": text[:300].replace("See more", "").replace("See More", "").strip() + "...",
         "contact": "Check Post",
         "availableFrom": None
     }
 
 async def parse_posts_with_gemini(raw_posts: list[dict]) -> list[dict]:
+    if not raw_posts:
+        return []
+    
     if not genapi_key or "your_gemini_api_key_here" in genapi_key:
         print("Using Regex Fallback Parser (AI key missing/invalid)")
         return [
@@ -61,67 +64,83 @@ async def parse_posts_with_gemini(raw_posts: list[dict]) -> list[dict]:
             for p in raw_posts
         ]
     
-    results = []
+    # Batch ALL posts into a single API call to avoid rate limits
+    posts_text = ""
+    for i, post in enumerate(raw_posts):
+        text = post.get('text', '')[:1500]  # Limit per post
+        # Clean "See more" artifacts from Facebook
+        text = re.sub(r'\s*See more\s*', ' ', text).strip()
+        posts_text += f"\n---POST {i+1}---\n{text}\n"
     
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        for post in raw_posts:
-            text = post.get('text', '')
-            url = post.get('url')
-            
-            prompt = f"""
-            Extract structured data from the following Facebook post about a flat rental.
-            Return strictly valid JSON. Keys: type (e.g. 2BHK), rent (number), location, availableFrom, description, contact.
-            If a field is unknown, use null.
-            
-            Post:
-            {text[:2000]} 
-            """
-            
-            payload = {
-                "contents": [{
-                    "parts": [{"text": prompt}]
-                }]
-            }
-            
-            api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={genapi_key}"
-            
+    prompt = f"""Extract structured data from these {len(raw_posts)} Facebook rental posts.
+Return a JSON ARRAY with one object per post, in order. Each object must have these keys:
+- type (e.g. "1BHK", "2BHK", "3BHK", "Single Room", "PG", or null)
+- rent (number or null)
+- location (string or null)
+- availableFrom (string or null)
+- description (1-2 sentence summary of the post)
+- contact (phone/name or null)
+- genderPreference ("Male", "Female", or "Any")
+
+Return ONLY valid JSON array, no markdown formatting.
+
+Posts:
+{posts_text}
+"""
+    
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}]
+    }
+    
+    api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={genapi_key}"
+    
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        # Retry with exponential backoff for rate limits
+        max_retries = 3
+        for attempt in range(max_retries + 1):
             try:
                 response = await client.post(api_url, json=payload)
                 response.raise_for_status()
                 
                 resp_json = response.json()
-                # Parse response structure
-                try:
-                    candidates = resp_json.get('candidates', [])
-                    if not candidates:
-                        raise ValueError("No candidates returned")
-                        
-                    content_parts = candidates[0].get('content', {}).get('parts', [])
-                    raw_text = content_parts[0].get('text', '') if content_parts else "{}"
+                candidates = resp_json.get('candidates', [])
+                if not candidates:
+                    raise ValueError("No candidates returned")
                     
-                    cleaned = raw_text.replace("```json", "").replace("```", "").strip()
-                    data = json.loads(cleaned)
-                    
-                    data['postUrl'] = url
-                    
-                    # Gender Logic (Hybrid - Regex is reliable for this)
-                    gender = "Any"
-                    if re.search(r'\b(female|females|girl|girls|lady|ladies|woman|women)\b', text, re.IGNORECASE):
-                        gender = "Female"
-                    elif re.search(r'\b(male|males|boy|boys|bachelor|bachelors|men|man)\b', text, re.IGNORECASE):
-                        gender = "Male"
-                    
-                    data['genderPreference'] = gender
-                    
+                content_parts = candidates[0].get('content', {}).get('parts', [])
+                raw_text = content_parts[0].get('text', '[]') if content_parts else '[]'
+                
+                cleaned = raw_text.replace("```json", "").replace("```", "").strip()
+                data_list = json.loads(cleaned)
+                
+                if not isinstance(data_list, list):
+                    data_list = [data_list]
+                
+                results = []
+                for i, data in enumerate(data_list):
+                    if i < len(raw_posts):
+                        data['postUrl'] = raw_posts[i].get('url')
                     results.append(data)
-                except Exception as parse_err:
-                     print(f"Error parsing AI response: {parse_err}")
-                     results.append({**extract_with_regex(text), "postUrl": url})
-
+                
+                print(f"AI successfully parsed {len(results)} posts in one batch call")
+                return results
+                
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code == 429 and attempt < max_retries:
+                    wait_time = [5, 15, 30][attempt]
+                    print(f"Rate limited (429). Retrying in {wait_time}s... (attempt {attempt + 1}/{max_retries})")
+                    import asyncio
+                    await asyncio.sleep(wait_time)
+                    continue
+                print(f"Error calling Gemini AI (batch): {e}")
+                break
             except Exception as e:
-                print(f"Error calling Gemini AI: {e}")
-                # Fallback
-                results.append({**extract_with_regex(text), "postUrl": url})
-                continue
-            
-    return results
+                print(f"Error calling Gemini AI (batch): {e}")
+                break
+        
+        print("Falling back to regex parser for all posts")
+        return [
+            {**extract_with_regex(re.sub(r'\s*See more\s*', ' ', p['text']).strip()), "postUrl": p.get('url')} 
+            for p in raw_posts
+        ]
+

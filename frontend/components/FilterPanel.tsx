@@ -26,12 +26,6 @@ export default function FilterPanel({ onScrape, onFilterChange, loading }: Filte
     const handleCancel = async () => {
         try {
             await fetch('http://localhost:8000/cancel', { method: 'POST' });
-            // We don't manually set loading false here because the scrape request 
-            // will naturally fail/return when cancelled, or we can force it.
-            // But usually the parent component controls 'loading'.
-            // Wait, FilterPanel receives 'loading' prop but doesn't control it.
-            // The parent 'handleScrape' needs to know it stopped?
-            // Actually, if we cancel backend, the fetch in page.tsx will eventually resolve/return.
         } catch (e) {
             console.error("Cancel failed", e);
         }
@@ -53,9 +47,11 @@ export default function FilterPanel({ onScrape, onFilterChange, loading }: Filte
 
     return (
         <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-white/20 sticky top-4">
-            <h2 className="text-xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Configuration
-            </h2>
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                    Configuration
+                </h2>
+            </div>
 
             {/* Scraper Control */}
             <div className="mb-6 space-y-2">
@@ -73,8 +69,8 @@ export default function FilterPanel({ onScrape, onFilterChange, loading }: Filte
                             onClick={() => onScrape(url, getFilters())}
                             disabled={loading || !url}
                             className={`flex-1 px-6 py-3 rounded-xl font-medium whitespace-nowrap shadow-sm border border-transparent transition-all duration-300 ${loading
-                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
-                                    : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg active:scale-95'
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
+                                : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg active:scale-95'
                                 }`}
                         >
                             {loading ? 'Scraping...' : 'Start Scrape'}
@@ -166,5 +162,6 @@ export default function FilterPanel({ onScrape, onFilterChange, loading }: Filte
                 </div>
             </div>
         </div>
+
     );
 }
