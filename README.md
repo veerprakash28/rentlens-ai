@@ -7,7 +7,9 @@
 ## 🌟 Key Features
 
 - **Automated Scraping**: Efficiently scrolls through Facebook Groups to capture the latest listings.
-- **AI-Powered Parsing**: Uses Gemini AI to extract structured data (Rent, Location, Room Type, Gender Preference) from messy post text.
+- **AI-Powered Parsing**: Uses Gemini AI to extract structured data (Rent, Location, Room Type, Gender Preference) from messy post text in optimized batches.
+- **Tabbed Sessions**: Manage multiple scraping sessions simultaneously with a browser-style tab interface—perfect for comparing across different groups.
+- **Automated Login**: Secure, automated Facebook login flow that saves session cookies locally so you only log in once.
 - **Smart Filtering**: Filter by budget, accommodation type, gender, and more directly on your dashboard.
 - **Premium UI**: A modern, sleek interface built with Next.js and TailwindCSS for a superior user experience.
 
@@ -73,13 +75,19 @@ Frontend will be available at: `http://localhost:3000`
 
 ---
 
-## 📖 How to Use
+## � Deployment
+
+For production deployment (Docker, Vercel, Railway), please refer to the **[Deployment Guide](deployment_guide.md)** for security checklists and architectural advice.
+
+---
+
+## �📖 How to Use
 
 1. **Launch**: Start both backend and frontend servers.
-2. **Navigate**: Open `http://localhost:3000` in your browser.
-3. **Target**: Paste the URL of a public Facebook Group (e.g., *Bangalore Flat and Flatmates*).
-4. **Filter**: Set your preferences for Rent, Gender, and Room Type.
-5. **Execute**: Click **"Start Scrape"** and watch the AI organize the chaos!
+2. **Authenticate**: Open `http://localhost:3000`. If it's your first time, click **"Continue with Facebook"**. A secure window will open for you to log in and then auto-close.
+3. **Session Management**: Use the **+** button in the top bar to create new scraping tabs for different groups.
+4. **Target**: Paste the URL of a Facebook Group (e.g., *Bangalore Flat and Flatmates*) into a tab.
+5. **Filter & Scrape**: Set your preferences and click **"Start Scrape"**. The AI will organize the posts, and the tab will update its name automatically!
 
 ---
 
